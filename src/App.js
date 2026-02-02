@@ -65,7 +65,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
-import ThreeDChart from './ThreeDChart';
+// import ThreeDChart from './ThreeDChart';
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -355,27 +355,33 @@ function Dashboard() {
       'Name': resume.attachmentData?.name || 'N/A',
       'Email': resume.attachmentData?.email || 'N/A',
       'Mobile Number': resume.attachmentData?.contactNumber || 'N/A',
-      'Date of Birth': resume.attachmentData?.dateOfBirth || 'N/A',
-      'Experience': resume.attachmentData?.experience || 'N/A',
+      'Location': resume.attachmentData?.location || 'N/A',
       'Role': resume.attachmentData?.role || 'Not Specified',
-      'Received At': resume.receivedAt ? new Date(resume.receivedAt).toLocaleDateString() : 'N/A',
-      'Subject': resume.subject || 'N/A'
+      'LinkedIn': resume.attachmentData?.links?.linkedin || 'N/A',
+      'GitHub': resume.attachmentData?.links?.github || 'N/A',
+      'Date of Birth': resume.attachmentData?.dateOfBirth || 'N/A',
+      'Summary': resume.attachmentData?.summary || 'N/A',
+      'Received At': resume.receivedAt ? new Date(resume.receivedAt).toLocaleString() : 'N/A',
+      'Source': resume.subject || 'Web Upload'
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Resume Data');
+    XLSX.utils.book_append_sheet(wb, ws, 'Detailed Resume Data');
     
     // Auto-size columns
     const colWidths = [
       { wch: 25 }, // Name
       { wch: 30 }, // Email
       { wch: 18 }, // Mobile Number
-      { wch: 15 }, // Date of Birth
-      { wch: 15 }, // Experience
+      { wch: 20 }, // Location
       { wch: 25 }, // Role
-      { wch: 15 }, // Received At
-      { wch: 40 }  // Subject
+      { wch: 30 }, // LinkedIn
+      { wch: 30 }, // GitHub
+      { wch: 15 }, // Date of Birth
+      { wch: 50 }, // Summary
+      { wch: 20 }, // Received At
+      { wch: 40 }  // Source
     ];
     ws['!cols'] = colWidths;
 
@@ -1608,7 +1614,7 @@ function Dashboard() {
                     </Typography>
                     {roleStats.length > 0 ? (
                       <Box sx={{ width: '100%', height: '450px', position: 'relative' }}>
-                        <ThreeDChart data={roleStats} />
+                        {/* <ThreeDChart data={roleStats} /> */}
                         <Box sx={{ position: 'absolute', bottom: 10, left: 10, bgcolor: 'rgba(255, 255, 255, 0.9)', p: 1.5, borderRadius: 2, backdropFilter: 'blur(10px)' }}>
                           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
                             💡 Drag to rotate • Scroll to zoom
