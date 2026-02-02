@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
   Container,
   Typography,
   Box,
@@ -15,55 +12,27 @@ import {
   LinearProgress,
   Alert,
   Paper,
-  IconButton
+  IconButton,
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
   Description as DescriptionIcon,
   CheckCircle as CheckCircleIcon,
   ArrowBack as ArrowBackIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon
 } from '@mui/icons-material';
-import { CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
+import { ColorModeContext } from './ThemeContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-// Professional light theme
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#2563eb',
-      light: '#3b82f6',
-      dark: '#1e40af',
-    },
-    secondary: {
-      main: '#7c3aed',
-    },
-    background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 800,
-      fontSize: '2.5rem',
-      color: '#1e293b',
-    },
-    h4: {
-      fontWeight: 600,
-      color: '#1e293b',
-    },
-  },
-  shape: {
-    borderRadius: 12,
-  },
-});
-
 function UploadPage() {
+  const theme = useTheme();
+  const colorMode = useContext(ColorModeContext);
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -74,6 +43,11 @@ function UploadPage() {
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
+
+    if (selectedFiles.length > 25) {
+      setError('You can only upload a maximum of 25 files at once');
+      return;
+    }
 
     const valid = [];
     for (const f of selectedFiles) {
@@ -149,18 +123,33 @@ function UploadPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%)',
-          padding: { xs: 2, sm: 3, md: 4 },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: theme.palette.mode === 'light' 
+          ? 'linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%)'
+          : 'linear-gradient(to bottom, #0f172a 0%, #1e293b 100%)',
+        padding: { xs: 2, sm: 3, md: 4 },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Box sx={{ position: 'fixed', top: 20, right: 20, zIndex: 10 }}>
+        <IconButton
+          onClick={colorMode.toggleColorMode}
+          sx={{
+            bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(10px)',
+            color: theme.palette.mode === 'light' ? 'primary.main' : '#f59e0b',
+            '&:hover': {
+              bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
+            }
+          }}
+        >
+          {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
+      </Box>
         <Container maxWidth="sm">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -185,9 +174,13 @@ function UploadPage() {
                       objectFit: 'contain',
                       mx: 'auto',
                       mb: 2,
+                      filter: (theme) => theme.palette.mode === 'dark' 
+                        ? 'invert(1) hue-rotate(180deg) brightness(1.1)' 
+                        : 'none',
+                      mixBlendMode: (theme) => theme.palette.mode === 'dark' ? 'screen' : 'multiply',
                     }}
                   />
-                  <Typography variant="h6" sx={{ color: '#64748b', mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: 'text.secondary', mb: 3 }}>
                     Submit Your Resume
                   </Typography>
                 </Box>
@@ -209,13 +202,13 @@ function UploadPage() {
                       <Typography variant="body2" sx={{ mb: 2 }}>
                         Your file(s) have been processed.
                       </Typography>
-                      <Box sx={{ mt: 2, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                      <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                         {uploadedResults.map((r, idx) => (
                           <Box key={idx} sx={{ mb: 1.5 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: r.status === 'success' ? '#16a34a' : '#ef4444' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: r.status === 'success' ? 'success.main' : 'error.main' }}>
                               {r.status === 'success' ? '✅' : '❌'} {r.file}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#64748b' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                               {r.status === 'success' ? 'Uploaded successfully' : r.error || 'Failed'}
                             </Typography>
                           </Box>
@@ -230,15 +223,16 @@ function UploadPage() {
                       sx={{
                         p: 4,
                         textAlign: 'center',
-                        border: '2px dashed #cbd5e1',
+                        border: '2px dashed',
+                        borderColor: 'divider',
                         borderRadius: 2,
-                        bgcolor: '#f8fafc',
+                        bgcolor: 'background.default',
                         mb: 3,
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                          borderColor: '#2563eb',
-                          bgcolor: '#eff6ff',
+                          borderColor: 'primary.main',
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? '#eff6ff' : 'rgba(37, 99, 235, 0.05)',
                         },
                       }}
                       onClick={() => document.getElementById('resume-upload').click()}
@@ -251,19 +245,19 @@ function UploadPage() {
                         onChange={handleFileChange}
                         style={{ display: 'none' }}
                       />
-                      <CloudUploadIcon sx={{ fontSize: 60, color: '#2563eb', mb: 2 }} />
-                      <Typography variant="h6" sx={{ mb: 1, color: '#1e293b' }}>
+                      <CloudUploadIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                      <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
                         {files.length ? `${files.length} file(s) selected` : 'Click to Upload Resume'}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#64748b' }}>
-                        PDF files only (Max 10MB)
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        PDF files only (Max 25 files, 10MB each)
                       </Typography>
                       {files.length > 0 && (
                         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
                           {files.map((f, idx) => (
                             <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <DescriptionIcon sx={{ color: '#10b981' }} />
-                              <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                              <DescriptionIcon sx={{ color: 'success.main' }} />
+                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
                                 {f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB)
                               </Typography>
                             </Box>
@@ -271,7 +265,7 @@ function UploadPage() {
                         </Box>
                       )}
                       {!files.length && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#64748b', fontStyle: 'italic' }}>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary', fontStyle: 'italic' }}>
                           Click above or browse to select PDF file(s)
                         </Typography>
                       )}
@@ -286,7 +280,7 @@ function UploadPage() {
                     {uploading && (
                       <Box sx={{ mb: 3 }}>
                         <LinearProgress />
-                        <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', color: '#64748b' }}>
+                        <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', color: 'text.secondary' }}>
                           Uploading and processing resume...
                         </Typography>
                       </Box>
@@ -302,15 +296,15 @@ function UploadPage() {
                       startIcon={uploading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <CloudUploadIcon />}
                       sx={{
                         py: 1.5,
-                        background: !files.length ? '#cbd5e1' : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                        background: !files.length ? 'text.disabled' : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
                         boxShadow: !files.length ? 'none' : '0 4px 6px -1px rgba(37, 99, 235, 0.3)',
                         '&:hover': {
-                          background: !files.length ? '#cbd5e1' : 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
+                          background: !files.length ? 'text.disabled' : 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
                           boxShadow: !files.length ? 'none' : '0 10px 15px -3px rgba(37, 99, 235, 0.4)',
                         },
                         '&:disabled': {
-                          background: '#cbd5e1',
-                          color: '#94a3b8',
+                          background: 'text.disabled',
+                          color: 'text.secondary',
                         },
                       }}
                     >
@@ -318,7 +312,7 @@ function UploadPage() {
                     </Button>
                     
                     {!files.length && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#ef4444' }}>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: 'error.main' }}>
                         ⚠️ Please select at least one PDF to enable the upload button
                       </Typography>
                     )}
@@ -327,7 +321,7 @@ function UploadPage() {
                       <Button
                         startIcon={<ArrowBackIcon />}
                         onClick={() => navigate('/')}
-                        sx={{ color: '#64748b' }}
+                        sx={{ color: 'text.secondary' }}
                       >
                         Back to Dashboard
                       </Button>
@@ -339,8 +333,7 @@ function UploadPage() {
           </motion.div>
         </Container>
       </Box>
-    </ThemeProvider>
-  );
+    );
 }
 
 export default UploadPage;

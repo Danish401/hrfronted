@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
   Container,
   Typography,
   Box,
@@ -19,7 +16,8 @@ import {
   Checkbox,
   FormControlLabel,
   Link,
-  Divider
+  Divider,
+  useTheme
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -28,103 +26,18 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Login as LoginIcon,
   Security as SecurityIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { ColorModeContext } from './ThemeContext';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-// Professional production theme
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#2563eb',
-      light: '#3b82f6',
-      dark: '#1e40af',
-    },
-    secondary: {
-      main: '#7c3aed',
-    },
-    background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
-    },
-    error: {
-      main: '#ef4444',
-    },
-    success: {
-      main: '#10b981',
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 800,
-      fontSize: '2.5rem',
-      letterSpacing: '-0.02em',
-    },
-    h4: {
-      fontWeight: 700,
-      fontSize: '1.5rem',
-    },
-    h6: {
-      fontWeight: 600,
-    },
-    body2: {
-      fontSize: '0.875rem',
-    },
-  },
-  shape: {
-    borderRadius: 16,
-  },
-  components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12)',
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 12,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#2563eb',
-              },
-            },
-            '&.Mui-focused': {
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderWidth: '2px',
-              },
-            },
-          },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 600,
-          borderRadius: 12,
-          padding: '14px 28px',
-          fontSize: '1rem',
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0 8px 16px rgba(37, 99, 235, 0.3)',
-          },
-        },
-      },
-    },
-  },
-});
-
 function LoginPage() {
+  const theme = useTheme();
+  const colorMode = useContext(ColorModeContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -191,43 +104,47 @@ function LoginPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
-          backgroundSize: '400% 400%',
-          animation: 'gradientShift 20s ease infinite',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: { xs: 2, sm: 3 },
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
-            pointerEvents: 'none',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: '-50%',
-            right: '-50%',
-            width: '200%',
-            height: '200%',
-            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
-            animation: 'pulse 8s ease-in-out infinite',
-            pointerEvents: 'none',
-          },
-        }}
-      >
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: theme.palette.mode === 'light' 
+          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%)'
+          : 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientShift 20s ease infinite',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: { xs: 2, sm: 3 },
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+          pointerEvents: 'none',
+        },
+      }}
+    >
+      <Box sx={{ position: 'fixed', top: 20, right: 20, zIndex: 10 }}>
+        <IconButton
+          onClick={colorMode.toggleColorMode}
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.1)',
+            backdropFilter: 'blur(10px)',
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'rgba(255,255,255,0.2)',
+            }
+          }}
+        >
+          {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
+      </Box>
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -277,7 +194,10 @@ function LoginPage() {
                       width: 'auto',
                       objectFit: 'contain',
                       mb: 2,
-                      filter: 'drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2))',
+                      filter: (theme) => theme.palette.mode === 'dark' 
+                        ? 'invert(1) hue-rotate(180deg) brightness(1.2) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2))' 
+                        : 'drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2))',
+                      mixBlendMode: (theme) => theme.palette.mode === 'dark' ? 'screen' : 'multiply',
                     }}
                   />
                   <Typography 
@@ -306,7 +226,7 @@ function LoginPage() {
                       variant="h4"
                       sx={{
                         mb: 1,
-                        color: '#1e293b',
+                        color: 'text.primary',
                         fontWeight: 700,
                       }}
                     >
@@ -315,7 +235,7 @@ function LoginPage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#64748b',
+                        color: 'text.secondary',
                         fontSize: '0.95rem',
                       }}
                     >
@@ -424,16 +344,10 @@ function LoginPage() {
                           <Checkbox
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
-                            sx={{
-                              color: '#2563eb',
-                              '&.Mui-checked': {
-                                color: '#2563eb',
-                              },
-                            }}
                           />
                         }
                         label={
-                          <Typography variant="body2" sx={{ color: '#64748b' }}>
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             Remember me
                           </Typography>
                         }
@@ -488,13 +402,13 @@ function LoginPage() {
                     </Button>
 
                     <Divider sx={{ my: 3 }}>
-                      <Typography variant="body2" sx={{ color: '#94a3b8', px: 2 }}>
+                      <Typography variant="body2" sx={{ color: 'text.disabled', px: 2 }}>
                         Secure Access
                       </Typography>
                     </Divider>
 
                     <Box sx={{ textAlign: 'center', mt: 3 }}>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 1 }}>
+                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1 }}>
                         Default credentials for first-time setup
                       </Typography>
                       <Box
@@ -504,17 +418,18 @@ function LoginPage() {
                           gap: 1,
                           px: 2,
                           py: 1,
-                          bgcolor: '#f1f5f9',
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
                           borderRadius: 2,
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid',
+                          borderColor: 'divider',
                         }}
                       >
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
-                          Username: <strong style={{ color: '#1e293b' }}>admin</strong>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                          Username: <strong style={{ color: theme.palette.text.primary }}>admin</strong>
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#cbd5e1', mx: 1 }}>•</Typography>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
-                          Password: <strong style={{ color: '#1e293b' }}>admin123</strong>
+                        <Typography variant="caption" sx={{ color: 'text.disabled', mx: 1 }}>•</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                          Password: <strong style={{ color: theme.palette.text.primary }}>admin123</strong>
                         </Typography>
                       </Box>
                     </Box>
@@ -543,8 +458,7 @@ function LoginPage() {
             50% { transform: scale(1.1); opacity: 0.15; }
           }
         `}</style>
-      </Box>
-    </ThemeProvider>
+    </Box>
   );
 }
 
