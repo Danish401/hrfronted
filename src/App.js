@@ -37,7 +37,12 @@ import {
   DialogActions,
   InputAdornment,
   LinearProgress,
-  useTheme
+  List,
+  ListItem,
+  ListItemText,
+  useTheme,
+  Pagination,
+  Stack
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -62,14 +67,16 @@ import {
   FileDownload as FileDownloadIcon,
   Download as DownloadIcon,
   Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon
+  Brightness7 as LightModeIcon,
+  Notifications as NotificationsIcon,
+  NotificationsActive as NotificationsActiveIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
 import { themeConfig } from './theme';
 import { ColorModeContext } from './ThemeContext';
-// import ThreeDChart from './ThreeDChart';
+// 
 import './App.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -123,14 +130,24 @@ function Dashboard() {
   const [socket, setSocket] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [birthdayNotifications, setBirthdayNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-  // Filter only emails with resume data
+  // Filter only emails with resume data and sort by most recent first
   const resumes = useMemo(() => {
-    return emails.filter(email => 
-      email.hasAttachment && 
-      email.attachmentData && 
-      (email.attachmentData.name || email.attachmentData.email)
-    );
+    return emails
+      .filter(email => 
+        email.hasAttachment && 
+        email.attachmentData && 
+        (email.attachmentData.name || email.attachmentData.email)
+      )
+      .sort((a, b) => {
+        const dateA = new Date(a.receivedAt || a.createdAt || a.timestamp || Date.now());
+        const dateB = new Date(b.receivedAt || b.createdAt || b.timestamp || Date.now());
+        return dateB - dateA; // Sort in descending order (most recent first)
+      });
   }, [emails]);
 
   // Filtered resumes based on search and role
@@ -156,6 +173,18 @@ function Dashboard() {
 
     return filtered;
   }, [resumes, searchQuery, selectedRole]);
+
+  // Paginated resumes
+  const paginatedResumes = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredResumes.slice(startIndex, endIndex);
+  }, [filteredResumes, currentPage, itemsPerPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedRole]);
 
   // Get unique roles for filter dropdown
   const uniqueRoles = useMemo(() => {
@@ -409,6 +438,36 @@ function Dashboard() {
     }
   };
 
+  const fetchBirthdayNotifications = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_URL}/api/notifications/birthdays/today`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBirthdayNotifications(response.data.birthdays);
+    } catch (error) {
+      console.error('Error fetching birthday notifications:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('adminData');
+        window.location.href = '/login';
+      }
+    }
+  };
+
+  const openWhatsApp = (phoneNumber, name) => {
+    const message = encodeURIComponent(`Happy Birthday, ${name}! Wishing you all the best on your special day! 🎉🎂`);
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // Fetch birthday notifications when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchBirthdayNotifications();
+    }
+  }, [isAuthenticated]);
+
   const handleAddResume = async () => {
     if (!resumeUrl.trim()) {
       setNotification({
@@ -568,6 +627,55 @@ function Dashboard() {
                 <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
                   <ThemeToggleButton />
                   <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1, opacity: 0.5 }} />
+                  {/* Birthday Notifications Icon */}
+                  <Box sx={{ position: 'relative' }}>
+                    <IconButton
+                      onClick={() => {
+                        setShowNotifications(!showNotifications);
+                      }}
+                      sx={{
+                        p: 1.2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        color: birthdayNotifications.length > 0 ? '#f59e0b' : theme.palette.text.secondary,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        border: '1px solid',
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        '&:hover': {
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                          transform: 'scale(1.1)',
+                          boxShadow: theme.palette.mode === 'dark' ? '0 0 15px rgba(245, 158, 11, 0.3)' : '0 0 15px rgba(245, 158, 11, 0.2)',
+                        }
+                      }}
+                    >
+                      {birthdayNotifications.length > 0 ? (
+                        <NotificationsActiveIcon />
+                      ) : (
+                        <NotificationsIcon />
+                      )}
+                    </IconButton>
+                    {birthdayNotifications.length > 0 && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -5,
+                          right: -5,
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          bgcolor: '#ef4444',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem',
+                          fontWeight: 'bold',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        }}
+                      >
+                        {birthdayNotifications.length}
+                      </Box>
+                    )}
+                  </Box>
                   <Button
                     variant="outlined"
                     startIcon={<ShareIcon />}
@@ -916,6 +1024,92 @@ function Dashboard() {
             </DialogActions>
           </Dialog>
 
+          {/* Birthday Notifications Dialog */}
+          <Dialog 
+            open={showNotifications} 
+            onClose={() => setShowNotifications(false)}
+            maxWidth="sm"
+            fullWidth
+            PaperProps={{
+              sx: {
+                maxHeight: '70vh',
+              }
+            }}
+          >
+            <DialogTitle sx={{ pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <NotificationsActiveIcon sx={{ color: '#f59e0b' }} />
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  Today's Birthdays ({birthdayNotifications.length})
+                </Typography>
+              </Box>
+            </DialogTitle>
+            <DialogContent dividers>
+              {birthdayNotifications.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <NotificationsIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2, opacity: 0.3 }} />
+                  <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                    No birthdays today
+                  </Typography>
+                </Box>
+              ) : (
+                <List sx={{ py: 0 }}>
+                  {birthdayNotifications.map((person, index) => (
+                    <ListItem 
+                      key={index} 
+                      sx={{ 
+                        py: 2, 
+                        borderBottom: index < birthdayNotifications.length - 1 ? '1px solid' : 'none', 
+                        borderColor: 'divider',
+                        '&:hover': {
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? '#f8fafc' : 'rgba(255,255,255,0.04)',
+                        }
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                            {person.name}
+                          </Typography>
+                        }
+                        secondary={
+                          <>
+                            <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+                              {person.phone}
+                            </Typography>
+                            <br />
+                            <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+                              {person.dob}
+                            </Typography>
+                          </>
+                        }
+                      />
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => openWhatsApp(person.phone, person.name)}
+                          sx={{
+                            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                            color: 'white',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #128C7E 0%, #075E54 100%)',
+                            },
+                          }}
+                        >
+                          Send Message
+                        </Button>
+                      </Box>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setShowNotifications(false)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+
           {/* Tabs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1172,7 +1366,8 @@ function Dashboard() {
                       </Card>
                     </Grid>
                   ) : (
-                    filteredResumes.map((resume, index) => (
+                    <>
+                    {paginatedResumes.map((resume, index) => (
                     <Grid item xs={12} md={6} lg={4} key={resume._id}>
                       <motion.div
                         variants={cardVariants}
@@ -1426,7 +1621,24 @@ function Dashboard() {
                         </Card>
                       </motion.div>
                     </Grid>
-                    ))
+                    ))}
+                    {/* Pagination Controls */}
+                    {filteredResumes.length > itemsPerPage && (
+                      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                        <Stack spacing={2}>
+                          <Pagination
+                            count={Math.ceil(filteredResumes.length / itemsPerPage)}
+                            page={currentPage}
+                            onChange={(event, page) => setCurrentPage(page)}
+                            color="primary"
+                            size="large"
+                            showFirstButton
+                            showLastButton
+                          />
+                        </Stack>
+                      </Grid>
+                    )}
+                    </>
                   )}
                 </AnimatePresence>
               </Grid>
