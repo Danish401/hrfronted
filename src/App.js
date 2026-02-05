@@ -733,8 +733,8 @@ function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={6} md={3}>
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6} md={6} lg={3}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -760,29 +760,29 @@ function Dashboard() {
                         },
                       }}
                     >
-                      <CardContent sx={{ textAlign: 'center', py: 4, position: 'relative', zIndex: 1 }}>
+                      <CardContent sx={{ textAlign: 'center', py: 3, px: 1.5, position: 'relative', zIndex: 1 }}>
                         <Box
                           sx={{
                             display: 'inline-flex',
-                            p: 1.5,
+                            p: 1.2,
                             borderRadius: 2,
                             bgcolor: 'rgba(37, 99, 235, 0.1)',
-                            mb: 2,
+                            mb: 1.5,
                           }}
                         >
-                          <BusinessCenterIcon sx={{ fontSize: 32, color: '#2563eb' }} />
+                          <BusinessCenterIcon sx={{ fontSize: 28, color: '#2563eb' }} />
                         </Box>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '2rem', sm: '2.25rem' } }}>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {resumes.length}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.9375rem' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.875rem' }}>
                           Total Resumes
                         </Typography>
                       </CardContent>
                     </Card>
                   </motion.div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={6} lg={3}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -808,29 +808,29 @@ function Dashboard() {
                         },
                       }}
                     >
-                      <CardContent sx={{ textAlign: 'center', py: 4, position: 'relative', zIndex: 1 }}>
+                      <CardContent sx={{ textAlign: 'center', py: 3, px: 1.5, position: 'relative', zIndex: 1 }}>
                         <Box
                           sx={{
                             display: 'inline-flex',
-                            p: 1.5,
+                            p: 1.2,
                             borderRadius: 2,
                             bgcolor: 'rgba(124, 58, 237, 0.1)',
-                            mb: 2,
+                            mb: 1.5,
                           }}
                         >
-                          <AssessmentIcon sx={{ fontSize: 32, color: '#7c3aed' }} />
+                          <AssessmentIcon sx={{ fontSize: 28, color: '#7c3aed' }} />
                         </Box>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '2rem', sm: '2.25rem' } }}>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {roleStats.length}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.9375rem' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.875rem' }}>
                           Unique Roles
                         </Typography>
                       </CardContent>
                     </Card>
                   </motion.div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={6} lg={3}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -862,32 +862,32 @@ function Dashboard() {
                         },
                       }}
                     >
-                      <CardContent sx={{ textAlign: 'center', py: 4, position: 'relative', zIndex: 1 }}>
+                      <CardContent sx={{ textAlign: 'center', py: 3, px: 1.5, position: 'relative', zIndex: 1 }}>
                         <Box
                           sx={{
                             display: 'inline-flex',
-                            p: 1.5,
+                            p: 1.2,
                             borderRadius: 2,
                             bgcolor: isConnected 
                               ? 'rgba(16, 185, 129, 0.1)'
                               : 'rgba(239, 68, 68, 0.1)',
-                            mb: 2,
+                            mb: 1.5,
                           }}
                         >
                           {isConnected ? (
-                            <CheckCircleIcon sx={{ fontSize: 32, color: '#10b981' }} />
+                            <CheckCircleIcon sx={{ fontSize: 28, color: '#10b981' }} />
                           ) : (
-                            <ErrorIcon sx={{ fontSize: 32, color: '#ef4444' }} />
+                            <ErrorIcon sx={{ fontSize: 28, color: '#ef4444' }} />
                           )}
                         </Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.9375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {isConnected ? 'Live Sync' : 'Offline'}
                         </Typography>
                       </CardContent>
                     </Card>
                   </motion.div>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={6} lg={3}>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -913,22 +913,22 @@ function Dashboard() {
                         },
                       }}
                     >
-                      <CardContent sx={{ textAlign: 'center', py: 4, position: 'relative', zIndex: 1 }}>
+                      <CardContent sx={{ textAlign: 'center', py: 3, px: 1.5, position: 'relative', zIndex: 1 }}>
                         <Box
                           sx={{
                             display: 'inline-flex',
-                            p: 1.5,
+                            p: 1.2,
                             borderRadius: 2,
                             bgcolor: 'rgba(245, 158, 11, 0.1)',
-                            mb: 2,
+                            mb: 1.5,
                           }}
                         >
-                          <TrendingUpIcon sx={{ fontSize: 32, color: '#f59e0b' }} />
+                          <TrendingUpIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
                         </Box>
-                        <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '2rem', sm: '2.25rem' } }}>
+                        <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {roleStats[0]?.value || 0}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.9375rem' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.875rem' }}>
                           Top Role Count
                         </Typography>
                       </CardContent>
@@ -1199,8 +1199,8 @@ function Dashboard() {
                       : '0 4px 20px rgba(0, 0, 0, 0.3)',
                   }}
                 >
-                    <Grid container spacing={2.5} alignItems="center">
-                      <Grid item xs={12} md={5}>
+                    <Grid container spacing={2} alignItems="flex-end">
+                      <Grid item xs={12} sm={6} md={5}>
                         <TextField
                           fullWidth
                           placeholder="Search by candidate name..."
@@ -1228,7 +1228,7 @@ function Dashboard() {
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} sm={6} md={4}>
                         <TextField
                           fullWidth
                           select
@@ -1273,7 +1273,7 @@ function Dashboard() {
                           })}
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid item xs={12} sm={12} md={3}>
                         <Button
                           fullWidth
                           variant="contained"
@@ -1281,7 +1281,7 @@ function Dashboard() {
                           onClick={exportToExcel}
                           disabled={filteredResumes.length === 0}
                           sx={{
-                            py: 1.75,
+                            py: 1.5,
                             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                             fontWeight: 600,
@@ -1368,7 +1368,7 @@ function Dashboard() {
                   ) : (
                     <>
                     {paginatedResumes.map((resume, index) => (
-                    <Grid item xs={12} md={6} lg={4} key={resume._id}>
+                    <Grid item xs={12} sm={6} md={6} lg={4} key={resume._id}>
                       <motion.div
                         variants={cardVariants}
                         initial="hidden"
@@ -1384,16 +1384,16 @@ function Dashboard() {
                             flexDirection: 'column',
                           }}
                         >
-                          <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                          <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 2 }}>
                             {/* Header */}
-                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 3 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                 <Avatar
                                   sx={{
                                     bgcolor: '#2563eb',
-                                    width: 56,
-                                    height: 56,
-                                    fontSize: '1.5rem',
+                                    width: 48,
+                                    height: 48,
+                                    fontSize: '1.25rem',
                                     fontWeight: 700,
                                   }}
                                 >
@@ -1409,6 +1409,7 @@ function Dashboard() {
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
                                       whiteSpace: 'nowrap',
+                                      fontSize: '1rem',
                                     }}
                                   >
                                     {resume.attachmentData?.name || 'Unknown Candidate'}
@@ -1422,7 +1423,7 @@ function Dashboard() {
                                         color: (theme) => theme.palette.mode === 'light' ? '#2563eb' : '#60a5fa',
                                         border: '1px solid rgba(37, 99, 235, 0.2)',
                                         fontWeight: 600,
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.7rem',
                                       }}
                                     />
                                   )}
@@ -1447,38 +1448,38 @@ function Dashboard() {
                               </IconButton>
                             </Box>
 
-                            <Divider sx={{ my: 2 }} />
+                            <Divider sx={{ my: 1.5 }} />
 
                             {/* Resume Data */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                               {resume.attachmentData?.email && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                  <EmailIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <EmailIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.email}
                                   </Typography>
                                 </Box>
                               )}
                               {resume.attachmentData?.contactNumber && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                  <PhoneIcon sx={{ fontSize: 20, color: 'secondary.main' }} />
-                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <PhoneIcon sx={{ fontSize: 16, color: 'secondary.main' }} />
+                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.contactNumber}
                                   </Typography>
                                 </Box>
                               )}
                               {resume.attachmentData?.dateOfBirth && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                  <CalendarIcon sx={{ fontSize: 20, color: 'success.main' }} />
-                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <CalendarIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.dateOfBirth}
                                   </Typography>
                                 </Box>
                               )}
                               {resume.attachmentData?.experience && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                  <WorkIcon sx={{ fontSize: 20, color: 'warning.main' }} />
-                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <WorkIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.experience}
                                   </Typography>
                                 </Box>
@@ -1486,7 +1487,7 @@ function Dashboard() {
                             </Box>
 
                             {/* Footer */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
                               <Typography
                                 variant="caption"
                                 sx={{
@@ -1494,9 +1495,10 @@ function Dashboard() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 0.5,
+                                  fontSize: '0.75rem',
                                 }}
                               >
-                                <CalendarIcon sx={{ fontSize: 14 }} />
+                                <CalendarIcon sx={{ fontSize: 12 }} />
                                 {formatDate(resume.receivedAt || resume.createdAt)}
                               </Typography>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1593,9 +1595,9 @@ function Dashboard() {
                                   sx={{
                                     borderColor: '#2563eb',
                                     color: '#2563eb',
-                                    fontSize: '0.75rem',
-                                    py: 0.5,
-                                    px: 1.5,
+                                    fontSize: '0.7rem',
+                                    py: 0.4,
+                                    px: 1,
                                     minWidth: 'auto',
                                     '&:hover': {
                                       borderColor: '#1e40af',
@@ -1603,7 +1605,7 @@ function Dashboard() {
                                     },
                                   }}
                                 >
-                                  Download PDF
+                                  PDF
                                 </Button>
                                 <Chip
                                   icon={<PersonIcon />}
@@ -1613,6 +1615,7 @@ function Dashboard() {
                                     bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.15)',
                                     color: (theme) => theme.palette.mode === 'light' ? '#065f46' : '#10b981',
                                     border: '1px solid rgba(16, 185, 129, 0.2)',
+                                    fontSize: '0.7rem',
                                   }}
                                 />
                               </Box>
@@ -1624,8 +1627,8 @@ function Dashboard() {
                     ))}
                     {/* Pagination Controls */}
                     {filteredResumes.length > itemsPerPage && (
-                      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                        <Stack spacing={2}>
+                      <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                        <Stack spacing={1}>
                           <Pagination
                             count={Math.ceil(filteredResumes.length / itemsPerPage)}
                             page={currentPage}
@@ -1647,35 +1650,35 @@ function Dashboard() {
           ) : (
             // Role Analytics Tab
             <Grid container spacing={3}>
-              <Grid item xs={12} lg={6}>
+              <Grid item xs={12} md={12} lg={6}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Card sx={{ p: 3, height: '100%', minHeight: '500px' }}>
-                    <Typography variant="h4" sx={{ mb: 3, color: 'text.primary', fontWeight: 700 }}>
+                  <Card sx={{ p: 2.5, height: '100%', minHeight: { xs: '400px', md: '500px' } }}>
+                    <Typography variant="h5" sx={{ mb: 2, color: 'text.primary', fontWeight: 700 }}>
                       3D Role Distribution
                     </Typography>
                     {roleStats.length > 0 ? (
-                      <Box sx={{ width: '100%', height: '450px', position: 'relative' }}>
+                      <Box sx={{ width: '100%', height: { xs: '350px', md: '450px' }, position: 'relative' }}>
                         {/* <ThreeDChart data={roleStats} /> */}
-                        <Box sx={{ position: 'absolute', bottom: 10, left: 10, bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.9)', p: 1.5, borderRadius: 2, backdropFilter: 'blur(10px)' }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                        <Box sx={{ position: 'absolute', bottom: 8, left: 8, bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.9)', p: 1, borderRadius: 2, backdropFilter: 'blur(10px)' }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
                             💡 Drag to rotate • Scroll to zoom
                           </Typography>
                         </Box>
                         {/* Labels overlay */}
-                        <Box sx={{ position: 'absolute', top: 10, right: 10, bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(30, 41, 59, 0.95)', p: 2, borderRadius: 2, minWidth: '200px' }}>
-                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary' }}>
+                        <Box sx={{ position: 'absolute', top: 8, right: 8, bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(30, 41, 59, 0.95)', p: 1.5, borderRadius: 2, minWidth: '150px' }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'text.primary', fontSize: '0.8rem' }}>
                             Role Distribution
                           </Typography>
                           {roleStats.map((item, index) => {
                             const colors = ['#2563eb', '#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
                             return (
                               <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: colors[index % colors.length] }} />
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: colors[index % colors.length] }} />
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
                                   {item.name}: {item.value}
                                 </Typography>
                               </Box>
@@ -1684,8 +1687,8 @@ function Dashboard() {
                         </Box>
                       </Box>
                     ) : (
-                      <Box sx={{ textAlign: 'center', py: 8 }}>
-                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                      <Box sx={{ textAlign: 'center', py: 6 }}>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
                           No role data available
                         </Typography>
                       </Box>
@@ -1693,18 +1696,18 @@ function Dashboard() {
                   </Card>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} lg={6}>
+              <Grid item xs={12} md={12} lg={6}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  <Card sx={{ p: 3, height: '100%' }}>
-                    <Typography variant="h4" sx={{ mb: 3, color: 'text.primary', fontWeight: 700 }}>
+                  <Card sx={{ p: 2.5, height: '100%' }}>
+                    <Typography variant="h5" sx={{ mb: 2, color: 'text.primary', fontWeight: 700 }}>
                       Top Roles (Bar Chart)
                     </Typography>
                     {roleStats.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={400}>
+                      <ResponsiveContainer width="100%" height={350}>
                         <BarChart data={roleStats}>
                           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
                           <XAxis 
@@ -1712,7 +1715,7 @@ function Dashboard() {
                             stroke={theme.palette.text.secondary}
                             angle={-45}
                             textAnchor="end"
-                            height={100}
+                            height={80}
                           />
                           <YAxis stroke={theme.palette.text.secondary} />
                           <Tooltip 
@@ -1729,8 +1732,8 @@ function Dashboard() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <Box sx={{ textAlign: 'center', py: 8 }}>
-                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                      <Box sx={{ textAlign: 'center', py: 6 }}>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
                           No role data available
                         </Typography>
                       </Box>
@@ -1744,24 +1747,24 @@ function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  <Card sx={{ p: 3 }}>
-                    <Typography variant="h4" sx={{ mb: 3, color: 'text.primary', fontWeight: 700 }}>
+                  <Card sx={{ p: 2 }}>
+                    <Typography variant="h5" sx={{ mb: 2, color: 'text.primary', fontWeight: 700 }}>
                       Role Statistics Table
                     </Typography>
                     <TableContainer>
-                      <Table>
+                      <Table size="small">
                         <TableHead>
                           <TableRow sx={{ bgcolor: 'background.default' }}>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Rank</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>Role</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }} align="right">Count</TableCell>
-                            <TableCell sx={{ color: 'text.primary', fontWeight: 700 }} align="right">Percentage</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700, fontSize: '0.8rem' }}>Rank</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700, fontSize: '0.8rem' }}>Role</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700, fontSize: '0.8rem' }} align="right">Count</TableCell>
+                            <TableCell sx={{ color: 'text.primary', fontWeight: 700, fontSize: '0.8rem' }} align="right">%</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {roleStats.map((role, index) => (
                             <TableRow key={role.name} hover>
-                              <TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>
                                 <Chip
                                   label={`#${index + 1}`}
                                   size="small"
@@ -1769,16 +1772,17 @@ function Dashboard() {
                                     bgcolor: COLORS[index % COLORS.length],
                                     color: '#fff',
                                     fontWeight: 700,
+                                    fontSize: '0.7rem',
                                   }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ color: 'text.primary', fontWeight: 600 }}>
+                              <TableCell sx={{ color: 'text.primary', fontWeight: 600, fontSize: '0.8rem' }}>
                                 {role.name}
                               </TableCell>
-                              <TableCell align="right" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                              <TableCell align="right" sx={{ color: 'text.primary', fontWeight: 600, fontSize: '0.8rem' }}>
                                 {role.value}
                               </TableCell>
-                              <TableCell align="right" sx={{ color: 'text.secondary' }}>
+                              <TableCell align="right" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
                                 {((role.value / resumes.length) * 100).toFixed(1)}%
                               </TableCell>
                             </TableRow>

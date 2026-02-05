@@ -190,10 +190,10 @@ function LoginPage() {
                     src="/logo.png"
                     alt="Your HR Power"
                     sx={{
-                      height: { xs: '60px', sm: '80px', md: '100px' },
+                      height: { xs: '50px', sm: '70px', md: '90px' },
                       width: 'auto',
                       objectFit: 'contain',
-                      mb: 2,
+                      mb: 1.5,
                       filter: (theme) => theme.palette.mode === 'dark' 
                         ? 'invert(1) hue-rotate(180deg) brightness(1.2) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2))' 
                         : 'drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2))',
@@ -206,7 +206,7 @@ function LoginPage() {
                       opacity: 0.95, 
                       fontWeight: 500,
                       letterSpacing: '0.5px',
-                      mt: 1,
+                      mt: 0.5,
                     }}
                   >
                     Admin Portal
@@ -220,14 +220,15 @@ function LoginPage() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
-                  <Box sx={{ textAlign: 'center', mb: 4 }}>
-                    <SecurityIcon sx={{ fontSize: 40, color: '#2563eb', mb: 2 }} />
+                  <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <SecurityIcon sx={{ fontSize: 36, color: '#2563eb', mb: 1.5 }} />
                     <Typography
-                      variant="h4"
+                      variant="h5"
                       sx={{
                         mb: 1,
                         color: 'text.primary',
                         fontWeight: 700,
+                        fontSize: { xs: '1.5rem', sm: '1.75rem' },
                       }}
                     >
                       Welcome Back
@@ -236,7 +237,7 @@ function LoginPage() {
                       variant="body2"
                       sx={{
                         color: 'text.secondary',
-                        fontSize: '0.95rem',
+                        fontSize: '0.875rem',
                       }}
                     >
                       Sign in to access your dashboard
@@ -381,7 +382,7 @@ function LoginPage() {
                       disabled={loading || !username.trim() || !password.trim()}
                       startIcon={loading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <LoginIcon />}
                       sx={{
-                        py: 1.75,
+                        py: 1.5,
                         mb: 3,
                         background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
                         fontSize: '1rem',

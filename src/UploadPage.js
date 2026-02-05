@@ -163,24 +163,24 @@ function UploadPage() {
             >
               <CardContent sx={{ p: 4 }}>
                 {/* Header */}
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
                   <Box
                     component="img"
                     src="/logo.png"
                     alt="Your HR Power"
                     sx={{
-                      height: { xs: '60px', sm: '80px', md: '100px' },
+                      height: { xs: '50px', sm: '70px', md: '90px' },
                       width: 'auto',
                       objectFit: 'contain',
                       mx: 'auto',
-                      mb: 2,
+                      mb: 1.5,
                       filter: (theme) => theme.palette.mode === 'dark' 
                         ? 'invert(1) hue-rotate(180deg) brightness(1.1)' 
                         : 'none',
                       mixBlendMode: (theme) => theme.palette.mode === 'dark' ? 'screen' : 'multiply',
                     }}
                   />
-                  <Typography variant="h6" sx={{ color: 'text.secondary', mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
                     Submit Your Resume
                   </Typography>
                 </Box>
@@ -245,19 +245,19 @@ function UploadPage() {
                         onChange={handleFileChange}
                         style={{ display: 'none' }}
                       />
-                      <CloudUploadIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                      <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
+                      <CloudUploadIcon sx={{ fontSize: 50, color: 'primary.main', mb: 1.5 }} />
+                      <Typography variant="h6" sx={{ mb: 1, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.125rem' } }}>
                         {files.length ? `${files.length} file(s) selected` : 'Click to Upload Resume'}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                         PDF files only (Max 25 files, 10MB each)
                       </Typography>
                       {files.length > 0 && (
-                        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                        <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
                           {files.map((f, idx) => (
                             <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <DescriptionIcon sx={{ color: 'success.main' }} />
-                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                              <DescriptionIcon sx={{ color: 'success.main', fontSize: 18 }} />
+                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600, fontSize: '0.8rem' }}>
                                 {f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB)
                               </Typography>
                             </Box>
@@ -265,7 +265,7 @@ function UploadPage() {
                         </Box>
                       )}
                       {!files.length && (
-                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary', fontStyle: 'italic' }}>
+                        <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.secondary', fontStyle: 'italic', fontSize: '0.75rem' }}>
                           Click above or browse to select PDF file(s)
                         </Typography>
                       )}
@@ -295,7 +295,7 @@ function UploadPage() {
                       disabled={!files.length || uploading || success}
                       startIcon={uploading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <CloudUploadIcon />}
                       sx={{
-                        py: 1.5,
+                        py: 1.25,
                         background: !files.length ? 'text.disabled' : 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
                         boxShadow: !files.length ? 'none' : '0 4px 6px -1px rgba(37, 99, 235, 0.3)',
                         '&:hover': {
