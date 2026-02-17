@@ -397,6 +397,26 @@ function Dashboard() {
       }, 5000);
     });
 
+    newSocket.on('tokenExpired', (data) => {
+      console.log('Outlook token expired notification received:', data);
+      setNotification({
+        type: 'warning',
+        message: data.message || 'Outlook authentication expired. Please reauthorize your account.',
+        action: {
+          label: 'Reauthorize Outlook',
+          onClick: () => {
+            if (data.authUrl) {
+              window.location.href = data.authUrl;
+            } else {
+              // Fallback to default auth URL
+              const authUrl = `${API_URL}/api/outlook-auth/login`;
+              window.location.href = authUrl;
+            }
+          }
+        }
+      });
+    });
+
     newSocket.on('disconnect', () => {
       console.log('Disconnected from server via Socket.IO');
       // Check if API is still reachable even if socket disconnected
@@ -409,6 +429,7 @@ function Dashboard() {
         newSocket.off('connect');
         newSocket.off('connect_error');
         newSocket.off('newEmail');
+        newSocket.off('tokenExpired');
         newSocket.off('disconnect');
         newSocket.disconnect();
       }
@@ -1135,6 +1156,26 @@ function Dashboard() {
               severity={notification?.type || 'info'}
               variant="filled"
               sx={{ width: '100%' }}
+              action={
+                notification?.action ? (
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={notification.action.onClick}
+                    sx={{
+                      color: 'white',
+                      borderColor: 'white',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.1)'
+                      }
+                    }}
+                  >
+                    {notification.action.label}
+                  </Button>
+                ) : null
+              }
             >
               {notification?.message}
             </Alert>
