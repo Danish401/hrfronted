@@ -69,7 +69,8 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Notifications as NotificationsIcon,
-  NotificationsActive as NotificationsActiveIcon
+  NotificationsActive as NotificationsActiveIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -129,10 +130,57 @@ function Dashboard() {
   const [addingResume, setAddingResume] = useState(false);
   const [socket, setSocket] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Check for Outlook auth callback parameters on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const outlookAuthStatus = urlParams.get('outlook_auth');
+    const outlookEmail = urlParams.get('email');
+    const outlookErrorMessage = urlParams.get('message');
+    
+    if (outlookAuthStatus === 'success' && outlookEmail) {
+      setNotification({
+        type: 'success',
+        message: `Outlook account ${outlookEmail} connected successfully!`
+      });
+      // Remove the query parameters from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setNotification(null), 5000);
+    } else if (outlookAuthStatus === 'error' && outlookErrorMessage) {
+      setNotification({
+        type: 'error',
+        message: `Outlook authentication failed: ${outlookErrorMessage}`
+      });
+      // Remove the query parameters from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setNotification(null), 5000);
+    }
+  }, []);
+  
+  // Outlook authentication handler
+  const handleOutlookAuth = () => {
+    // Redirect to the backend Outlook auth endpoint
+    window.location.href = `${API_URL}/api/outlook-auth/login`;
+  };
   const [selectedRole, setSelectedRole] = useState('all');
   const [birthdayNotifications, setBirthdayNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentEditingResume, setCurrentEditingResume] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    contactNumber: '',
+    dateOfBirth: '',
+    role: '',
+    location: '',
+    experience: '',
+    summary: '',
+    'links.linkedin': '',
+    'links.github': '',
+    'links.portfolio': ''
+  });
   const itemsPerPage = 6;
 
   // Filter only emails with resume data and sort by most recent first
@@ -533,6 +581,124 @@ function Dashboard() {
     window.location.href = '/login';
   };
 
+  // Handle edit name functionality
+  const handleEditName = (resume) => {
+    setCurrentEditingResume(resume);
+    setEditFormData({
+      name: resume.attachmentData?.name || '',
+      email: resume.attachmentData?.email || '',
+      contactNumber: resume.attachmentData?.contactNumber || '',
+      dateOfBirth: resume.attachmentData?.dateOfBirth || '',
+      role: resume.attachmentData?.role || '',
+      location: resume.attachmentData?.location || '',
+      experience: resume.attachmentData?.experience || '',
+      summary: resume.attachmentData?.summary || '',
+      'links.linkedin': resume.attachmentData?.links?.linkedin || '',
+      'links.github': resume.attachmentData?.links?.github || '',
+      'links.portfolio': resume.attachmentData?.links?.portfolio || ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveAllFields = async () => {
+    if (!currentEditingResume) return;
+
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      // Prepare the update data
+      const updateData = {
+        name: editFormData.name.trim(),
+        email: editFormData.email.trim(),
+        contactNumber: editFormData.contactNumber.trim(),
+        dateOfBirth: editFormData.dateOfBirth.trim(),
+        role: editFormData.role.trim(),
+        location: editFormData.location.trim(),
+        experience: editFormData.experience.trim(),
+        summary: editFormData.summary.trim(),
+        links: {
+          linkedin: editFormData['links.linkedin'].trim(),
+          github: editFormData['links.github'].trim(),
+          portfolio: editFormData['links.portfolio'].trim()
+        }
+      };
+
+      await axios.put(`${API_URL}/api/resumes/${currentEditingResume._id}/details`, 
+        updateData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state
+      setEmails(prevEmails => 
+        prevEmails.map(email => 
+          email._id === currentEditingResume._id 
+            ? { 
+                ...email, 
+                attachmentData: { 
+                  ...email.attachmentData, 
+                  ...updateData
+                } 
+              }
+            : email
+        )
+      );
+      
+      setNotification({
+        type: 'success',
+        message: 'Resume details updated successfully!'
+      });
+      
+      setEditDialogOpen(false);
+      setCurrentEditingResume(null);
+      setEditFormData({
+        name: '',
+        email: '',
+        contactNumber: '',
+        dateOfBirth: '',
+        role: '',
+        location: '',
+        experience: '',
+        summary: '',
+        'links.linkedin': '',
+        'links.github': '',
+        'links.portfolio': ''
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      console.error('Error updating resume details:', error);
+      setNotification({
+        type: 'error',
+        message: error.response?.data?.error || 'Failed to update resume details'
+      });
+      setTimeout(() => setNotification(null), 5000);
+    }
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setCurrentEditingResume(null);
+    setEditFormData({
+      name: '',
+      email: '',
+      contactNumber: '',
+      dateOfBirth: '',
+      role: '',
+      location: '',
+      experience: '',
+      summary: '',
+      'links.linkedin': '',
+      'links.github': '',
+      'links.portfolio': ''
+    });
+  };
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -702,6 +868,25 @@ function Dashboard() {
                     }}
                   >
                     Share Link
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<EmailIcon />}
+                    onClick={handleOutlookAuth}
+                    sx={{
+                      borderColor: '#0078d4',
+                      color: '#0078d4',
+                      borderWidth: '1.5px',
+                      fontWeight: 600,
+                      '&:hover': {
+                        borderColor: '#106ebe',
+                        bgcolor: '#e6f4ff',
+                        borderWidth: '1.5px',
+                        transform: 'translateY(-1px)',
+                      },
+                    }}
+                  >
+                    Connect Outlook
                   </Button>
                   <Button
                     variant="outlined"
@@ -1020,6 +1205,218 @@ function Dashboard() {
                 }}
               >
                 {addingResume ? 'Processing...' : 'Add Resume'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Edit Name Dialog */}
+          <Dialog 
+            open={editDialogOpen} 
+            onClose={handleCloseEditDialog}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle sx={{ pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <EditIcon sx={{ color: '#2563eb' }} />
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  Edit Resume Details
+                </Typography>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ pt: 2 }}>
+                <Grid container spacing={2}>
+                  {/* Personal Information */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                      Personal Information
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      placeholder="Enter candidate full name"
+                      value={editFormData.name}
+                      onChange={(e) => handleEditFormChange('name', e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      placeholder="candidate@email.com"
+                      value={editFormData.email}
+                      onChange={(e) => handleEditFormChange('email', e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Contact Number"
+                      placeholder="+1 (555) 123-4567"
+                      value={editFormData.contactNumber}
+                      onChange={(e) => handleEditFormChange('contactNumber', e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Date of Birth"
+                      placeholder="MM/DD/YYYY"
+                      value={editFormData.dateOfBirth}
+                      onChange={(e) => handleEditFormChange('dateOfBirth', e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Current Role/Position"
+                      placeholder="Software Engineer"
+                      value={editFormData.role}
+                      onChange={(e) => handleEditFormChange('role', e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <WorkIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Location"
+                      placeholder="City, State/Country"
+                      value={editFormData.location}
+                      onChange={(e) => handleEditFormChange('location', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Experience"
+                      placeholder="5 years"
+                      value={editFormData.experience}
+                      onChange={(e) => handleEditFormChange('experience', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  {/* Links Section */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, my: 2, color: 'primary.main' }}>
+                      Professional Links
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="LinkedIn Profile"
+                      placeholder="https://linkedin.com/in/username"
+                      value={editFormData['links.linkedin']}
+                      onChange={(e) => handleEditFormChange('links.linkedin', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="GitHub Profile"
+                      placeholder="https://github.com/username"
+                      value={editFormData['links.github']}
+                      onChange={(e) => handleEditFormChange('links.github', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Portfolio Website"
+                      placeholder="https://portfolio.com"
+                      value={editFormData['links.portfolio']}
+                      onChange={(e) => handleEditFormChange('links.portfolio', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  {/* Summary */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, my: 2, color: 'primary.main' }}>
+                      Professional Summary
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Professional Summary"
+                      placeholder="Brief professional summary..."
+                      value={editFormData.summary}
+                      onChange={(e) => handleEditFormChange('summary', e.target.value)}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, pt: 2 }}>
+              <Button 
+                onClick={handleCloseEditDialog}
+                sx={{ color: '#64748b' }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveAllFields}
+                variant="contained"
+                disabled={!editFormData.name.trim()}
+                startIcon={<EditIcon />}
+                sx={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
+                  },
+                }}
+              >
+                Save All Changes
               </Button>
             </DialogActions>
           </Dialog>
@@ -1429,23 +1826,38 @@ function Dashboard() {
                                   )}
                                 </Box>
                               </Box>
-                              <IconButton
-                                size="small"
-                                onClick={() => {
-                                  if (window.confirm('Are you sure you want to delete this resume?')) {
-                                    deleteResume(resume._id);
-                                  }
-                                }}
-                                sx={{
-                                  color: 'text.secondary',
-                                  '&:hover': {
-                                    color: '#ef4444',
-                                    bgcolor: '#fee2e2',
-                                  },
-                                }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleEditName(resume)}
+                                  sx={{
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                      color: '#2563eb',
+                                      bgcolor: '#dbeafe',
+                                    },
+                                  }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this resume?')) {
+                                      deleteResume(resume._id);
+                                    }
+                                  }}
+                                  sx={{
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                      color: '#ef4444',
+                                      bgcolor: '#fee2e2',
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                             </Box>
 
                             <Divider sx={{ my: 1.5 }} />

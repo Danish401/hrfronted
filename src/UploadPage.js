@@ -44,8 +44,8 @@ function UploadPage() {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
 
-    if (selectedFiles.length > 25) {
-      setError('You can only upload a maximum of 25 files at once');
+    if (selectedFiles.length > 1000) {
+      setError('You can only upload a maximum of 1000 files at once');
       return;
     }
 
@@ -89,7 +89,7 @@ function UploadPage() {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
         },
-        timeout: 120000, // 120 second timeout for multiple files
+        timeout: 600000, // 10 minute timeout for large batch uploads
       });
 
       setSuccess(true);
@@ -110,7 +110,7 @@ function UploadPage() {
       } else if (err.message) {
         errorMessage = err.message;
       } else if (err.code === 'ECONNABORTED') {
-        errorMessage = 'Upload timeout. Please try again with smaller files or fewer at once.';
+        errorMessage = 'Upload timeout. Please try again with fewer files at once (max 1000 files).';
       } else if (err.code === 'ERR_NETWORK') {
         errorMessage = 'Network error. Please check your connection and try again.';
       }
@@ -250,7 +250,7 @@ function UploadPage() {
                         {files.length ? `${files.length} file(s) selected` : 'Click to Upload Resume'}
                       </Typography>
                       <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                        PDF files only (Max 25 files, 10MB each)
+                        PDF files only (Max 1000 files, 10MB each)
                       </Typography>
                       {files.length > 0 && (
                         <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'center' }}>
