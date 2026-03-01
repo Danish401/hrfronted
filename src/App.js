@@ -181,6 +181,8 @@ function Dashboard() {
     'links.github': '',
     'links.portfolio': ''
   });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, resume: null });
+  const [confirmUpdateOpen, setConfirmUpdateOpen] = useState(false);
   const itemsPerPage = 6;
 
   // Filter only emails with resume data and sort by most recent first
@@ -702,6 +704,16 @@ function Dashboard() {
     }
   };
 
+  const handleRequestSaveAllFields = () => {
+    if (!editFormData.name.trim()) return;
+    setConfirmUpdateOpen(true);
+  };
+
+  const handleConfirmSaveAllFields = async () => {
+    await handleSaveAllFields();
+    setConfirmUpdateOpen(false);
+  };
+
   const handleCloseEditDialog = () => {
     setEditDialogOpen(false);
     setCurrentEditingResume(null);
@@ -718,6 +730,12 @@ function Dashboard() {
       'links.github': '',
       'links.portfolio': ''
     });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete.resume) return;
+    await deleteResume(confirmDelete.resume._id);
+    setConfirmDelete({ open: false, resume: null });
   };
 
   // Show loading while checking auth
@@ -1250,6 +1268,50 @@ function Dashboard() {
             </DialogActions>
           </Dialog>
 
+          {/* Confirm Delete Dialog */}
+          <Dialog
+            open={confirmDelete.open}
+            onClose={() => setConfirmDelete({ open: false, resume: null })}
+            maxWidth="xs"
+            fullWidth
+          >
+            <DialogTitle sx={{ textAlign: 'center', fontWeight: 700 }}>
+              Delete Resume
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: 'center', pb: 1 }}>
+              <Typography sx={{ mb: 1, color: 'text.secondary' }}>
+                Are you sure you want to delete
+              </Typography>
+              <Typography sx={{ fontWeight: 700, mb: 2 }}>
+                {confirmDelete.resume?.attachmentData?.name || 'this resume'}?
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                This action cannot be undone.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+              <Button
+                onClick={() => setConfirmDelete({ open: false, resume: null })}
+                sx={{ color: '#64748b' }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmDelete}
+                variant="contained"
+                startIcon={<DeleteIcon />}
+                sx={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%)',
+                  },
+                }}
+              >
+                Yes, Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           {/* Edit Name Dialog */}
           <Dialog 
             open={editDialogOpen} 
@@ -1446,7 +1508,7 @@ function Dashboard() {
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveAllFields}
+                onClick={handleRequestSaveAllFields}
                 variant="contained"
                 disabled={!editFormData.name.trim()}
                 startIcon={<EditIcon />}
@@ -1458,6 +1520,44 @@ function Dashboard() {
                 }}
               >
                 Save All Changes
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Confirm Update Dialog */}
+          <Dialog
+            open={confirmUpdateOpen}
+            onClose={() => setConfirmUpdateOpen(false)}
+            maxWidth="xs"
+            fullWidth
+          >
+            <DialogTitle sx={{ textAlign: 'center', fontWeight: 700 }}>
+              Confirm Update
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: 'center', pb: 1 }}>
+              <Typography sx={{ mb: 2, color: 'text.secondary' }}>
+                Are you sure you want to save these changes to the candidate details?
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+              <Button
+                onClick={() => setConfirmUpdateOpen(false)}
+                sx={{ color: '#64748b' }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmSaveAllFields}
+                variant="contained"
+                startIcon={<EditIcon />}
+                sx={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)',
+                  },
+                }}
+              >
+                Yes, Update
               </Button>
             </DialogActions>
           </Dialog>
@@ -1883,11 +1983,7 @@ function Dashboard() {
                                 </IconButton>
                                 <IconButton
                                   size="small"
-                                  onClick={() => {
-                                    if (window.confirm('Are you sure you want to delete this resume?')) {
-                                      deleteResume(resume._id);
-                                    }
-                                  }}
+                                  onClick={() => setConfirmDelete({ open: true, resume })}
                                   sx={{
                                     color: 'text.secondary',
                                     '&:hover': {
