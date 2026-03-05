@@ -42,7 +42,8 @@ import {
   ListItemText,
   useTheme,
   Pagination,
-  Stack
+  Stack,
+  MenuItem
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -130,6 +131,11 @@ function Dashboard() {
   const [addingResume, setAddingResume] = useState(false);
   const [socket, setSocket] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null); // server-side full-text results
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [adminData, setAdminData] = useState(null);
   
   // Check for Outlook auth callback parameters on component mount
   useEffect(() => {
@@ -176,6 +182,8 @@ function Dashboard() {
     role: '',
     location: '',
     experience: '',
+    currentSalary: '',
+    noticePeriod: '',
     summary: '',
     'links.linkedin': '',
     'links.github': '',
@@ -185,9 +193,51 @@ function Dashboard() {
   const [confirmUpdateOpen, setConfirmUpdateOpen] = useState(false);
   const itemsPerPage = 6;
 
+  const runServerSearch = async (q) => {
+    const query = (q || '').trim();
+    if (!query) {
+      setSearchResults(null);
+      return;
+    }
+    try {
+      setSearchLoading(true);
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_URL}/api/resumes/search`, {
+        params: { q: query },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error('Error searching resumes:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('adminData');
+        window.location.href = '/login';
+        return;
+      }
+      setNotification({
+        type: 'error',
+        message: 'Search failed'
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Server-side full-text search (debounced)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const handle = setTimeout(() => {
+      runServerSearch(searchQuery);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [searchQuery, isAuthenticated]);
+
   // Filter only emails with resume data and sort by most recent first
   const resumes = useMemo(() => {
-    return emails
+    const base = Array.isArray(searchResults) ? searchResults : emails;
+    return base
       .filter(email => 
         email.hasAttachment && 
         email.attachmentData && 
@@ -198,20 +248,11 @@ function Dashboard() {
         const dateB = new Date(b.receivedAt || b.createdAt || b.timestamp || Date.now());
         return dateB - dateA; // Sort in descending order (most recent first)
       });
-  }, [emails]);
+  }, [emails, searchResults]);
 
   // Filtered resumes based on search and role
   const filteredResumes = useMemo(() => {
     let filtered = resumes;
-
-    // Filter by search query (name)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(resume => {
-        const name = (resume.attachmentData?.name || '').toLowerCase();
-        return name.includes(query);
-      });
-    }
 
     // Filter by role
     if (selectedRole !== 'all') {
@@ -222,7 +263,7 @@ function Dashboard() {
     }
 
     return filtered;
-  }, [resumes, searchQuery, selectedRole]);
+  }, [resumes, selectedRole]);
 
   // Paginated resumes
   const paginatedResumes = useMemo(() => {
@@ -305,10 +346,6 @@ function Dashboard() {
     });
     setTimeout(() => setNotification(null), 3000);
   };
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [adminData, setAdminData] = useState(null);
 
   // Health check function to verify backend is reachable
   const checkBackendHealth = async () => {
@@ -604,6 +641,7 @@ function Dashboard() {
     window.location.href = '/login';
   };
 
+
   // Handle edit name functionality
   const handleEditName = (resume) => {
     setCurrentEditingResume(resume);
@@ -615,6 +653,8 @@ function Dashboard() {
       role: resume.attachmentData?.role || '',
       location: resume.attachmentData?.location || '',
       experience: resume.attachmentData?.experience || '',
+      currentSalary: resume.attachmentData?.currentSalary || '',
+      noticePeriod: resume.attachmentData?.noticePeriod || '',
       summary: resume.attachmentData?.summary || '',
       'links.linkedin': resume.attachmentData?.links?.linkedin || '',
       'links.github': resume.attachmentData?.links?.github || '',
@@ -645,6 +685,8 @@ function Dashboard() {
         role: editFormData.role.trim(),
         location: editFormData.location.trim(),
         experience: editFormData.experience.trim(),
+        currentSalary: editFormData.currentSalary.trim(),
+        noticePeriod: editFormData.noticePeriod.trim(),
         summary: editFormData.summary.trim(),
         links: {
           linkedin: editFormData['links.linkedin'].trim(),
@@ -688,6 +730,8 @@ function Dashboard() {
         role: '',
         location: '',
         experience: '',
+        currentSalary: '',
+        noticePeriod: '',
         summary: '',
         'links.linkedin': '',
         'links.github': '',
@@ -725,6 +769,8 @@ function Dashboard() {
       role: '',
       location: '',
       experience: '',
+      currentSalary: '',
+      noticePeriod: '',
       summary: '',
       'links.linkedin': '',
       'links.github': '',
@@ -1442,6 +1488,26 @@ function Dashboard() {
                     />
                   </Grid>
                   
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Current Salary"
+                      placeholder="e.g. 10 LPA or $50k"
+                      value={editFormData.currentSalary}
+                      onChange={(e) => handleEditFormChange('currentSalary', e.target.value)}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Notice Period"
+                      placeholder="e.g. 2 weeks, 1 month"
+                      value={editFormData.noticePeriod}
+                      onChange={(e) => handleEditFormChange('noticePeriod', e.target.value)}
+                    />
+                  </Grid>
+                  
                   {/* Links Section */}
                   <Grid item xs={12}>
                     <Typography variant="h6" sx={{ fontWeight: 600, my: 2, color: 'primary.main' }}>
@@ -1741,7 +1807,7 @@ function Dashboard() {
                       <Grid item xs={12} sm={6} md={5}>
                         <TextField
                           fullWidth
-                          placeholder="Search by candidate name..."
+                          placeholder="Search resumes (name, skills, keywords)..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           variant="outlined"
@@ -1751,6 +1817,11 @@ function Dashboard() {
                                 <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                               </InputAdornment>
                             ),
+                            endAdornment: searchLoading ? (
+                              <InputAdornment position="end">
+                                <CircularProgress size={18} sx={{ color: 'text.secondary' }} />
+                              </InputAdornment>
+                            ) : null,
                           }}
                           sx={{
                             '& .MuiOutlinedInput-root': {
@@ -2050,7 +2121,7 @@ function Dashboard() {
                                 <CalendarIcon sx={{ fontSize: 12 }} />
                                 {formatDate(resume.receivedAt || resume.createdAt)}
                               </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                 <Button
                                   size="small"
                                   variant="outlined"
