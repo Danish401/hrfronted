@@ -4,6 +4,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import UploadPage from './UploadPage';
 import LoginPage from './LoginPage';
+
 import {
   ThemeProvider,
   CssBaseline,
@@ -45,12 +46,12 @@ import {
   Stack,
   MenuItem
 } from '@mui/material';
+import { CalendarToday as CalendarIcon } from '@mui/icons-material';
 import {
   Email as EmailIcon,
   Delete as DeleteIcon,
   Person as PersonIcon,
   Phone as PhoneIcon,
-  CalendarToday as CalendarIcon,
   Work as WorkIcon,
   BusinessCenter as BusinessCenterIcon,
   CheckCircle as CheckCircleIcon,
@@ -71,8 +72,11 @@ import {
   Brightness7 as LightModeIcon,
   Notifications as NotificationsIcon,
   NotificationsActive as NotificationsActiveIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  Cake as CakeIcon,
+  Celebration as CelebrationIcon
 } from '@mui/icons-material';
+import { PiWhatsappLogoDuotone } from 'react-icons/pi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -169,6 +173,7 @@ function Dashboard() {
     window.location.href = `${API_URL}/api/outlook-auth/login`;
   };
   const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedDate, setSelectedDate] = useState(null);
   const [birthdayNotifications, setBirthdayNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -250,6 +255,55 @@ function Dashboard() {
       });
   }, [emails, searchResults]);
 
+  // Check if today is someone's birthday
+  const isTodayBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+    
+    try {
+      const today = new Date();
+      const todayDay = today.getDate();
+      const todayMonth = today.getMonth(); // 0-11
+      const todayYear = today.getFullYear();
+      
+      let birthDate;
+      const dateStr = String(dateOfBirth);
+      
+      // Handle DD/MM/YYYY or DD-MM-YYYY format
+      // Examples: 09/03/2000 or 09-03-1999
+      const slashMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      const dashMatch = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      
+      if (slashMatch) {
+        // DD/MM/YYYY format
+        const day = parseInt(slashMatch[1]);
+        const month = parseInt(slashMatch[2]) - 1; // Convert to 0-based
+        const year = parseInt(slashMatch[3]);
+        birthDate = new Date(year, month, day);
+      } else if (dashMatch) {
+        // DD-MM-YYYY format
+        const day = parseInt(dashMatch[1]);
+        const month = parseInt(dashMatch[2]) - 1; // Convert to 0-based
+        const year = parseInt(dashMatch[3]);
+        birthDate = new Date(year, month, day);
+      } else {
+        // Try standard Date parsing as fallback
+        birthDate = new Date(dateStr);
+      }
+      
+      // Validate the date
+      if (!birthDate || isNaN(birthDate.getTime())) {
+        return false;
+      }
+      
+      // Compare day and month (ignore year)
+      return todayDay === birthDate.getDate() && 
+             todayMonth === birthDate.getMonth();
+    } catch (error) {
+      console.error('Error checking birthday:', error);
+      return false;
+    }
+  };
+
   // Filtered resumes based on search and role
   const filteredResumes = useMemo(() => {
     let filtered = resumes;
@@ -262,8 +316,34 @@ function Dashboard() {
       });
     }
 
+    // Filter by search query (name and contact number only)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(resume => {
+        const name = resume.attachmentData?.name || '';
+        const contactNumber = resume.attachmentData?.contactNumber || '';
+        
+        // Search only in name and contact number
+        return name.toLowerCase().includes(query) || 
+               contactNumber.toLowerCase().includes(query);
+      });
+    }
+
+    // Filter by date
+    if (selectedDate) {
+      filtered = filtered.filter(resume => {
+        const resumeDate = new Date(resume.receivedAt || resume.createdAt);
+        const filterDate = new Date(selectedDate);
+        
+        // Compare dates (year, month, day)
+        return resumeDate.getFullYear() === filterDate.getFullYear() &&
+               resumeDate.getMonth() === filterDate.getMonth() &&
+               resumeDate.getDate() === filterDate.getDate();
+      });
+    }
+
     return filtered;
-  }, [resumes, selectedRole]);
+  }, [resumes, selectedRole, searchQuery, selectedDate]);
 
   // Paginated resumes
   const paginatedResumes = useMemo(() => {
@@ -275,7 +355,7 @@ function Dashboard() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedRole]);
+  }, [searchQuery, selectedRole, selectedDate]);
 
   // Get unique roles for filter dropdown
   const uniqueRoles = useMemo(() => {
@@ -884,19 +964,41 @@ function Dashboard() {
                       onClick={() => {
                         setShowNotifications(!showNotifications);
                       }}
-                      sx={{
-                        p: 1.2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                        color: birthdayNotifications.length > 0 ? '#f59e0b' : theme.palette.text.secondary,
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        border: '1px solid',
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                        '&:hover': {
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                          transform: 'scale(1.1)',
-                          boxShadow: theme.palette.mode === 'dark' ? '0 0 15px rgba(245, 158, 11, 0.3)' : '0 0 15px rgba(245, 158, 11, 0.2)',
-                        }
-                      }}
+                     sx={{
+  p: 1.3,
+  borderRadius: "12px",
+
+  bgcolor: theme.palette.mode === "dark"
+    ? "rgba(88, 101, 242, 0.12)"
+    : "#F3F6FF",
+
+  color: birthdayNotifications.length > 0
+    ? "#FF8A00"
+    : "#5B6B8C",
+
+  border: "1px solid",
+  borderColor: theme.palette.mode === "dark"
+    ? "rgba(120,130,255,0.25)"
+    : "#DDE3FF",
+
+  transition: "all 0.25s ease",
+
+  "&:hover": {
+    bgcolor: theme.palette.mode === "dark"
+      ? "rgba(120,130,255,0.22)"
+      : "#E8EDFF",
+
+    transform: "scale(1.08)",
+
+    boxShadow: birthdayNotifications.length > 0
+      ? "0 8px 20px rgba(255,138,0,0.35)"
+      : "0 8px 20px rgba(99,102,241,0.30)",
+
+    borderColor: birthdayNotifications.length > 0
+      ? "#FF8A00"
+      : "#6366F1",
+  }
+}}
                     >
                       {birthdayNotifications.length > 0 ? (
                         <NotificationsActiveIcon />
@@ -1013,8 +1115,8 @@ function Dashboard() {
                   >
                     <Card
                       sx={{
-                        background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%)',
-                        border: '1px solid rgba(37, 99, 235, 0.1)',
+                        background: 'linear-gradient(135deg, rgba(255, 153, 200, 0.08) 0%, rgba(169, 222, 249, 0.05) 100%)',
+                        border: '2px solid rgba(255, 153, 200, 0.2)',
                         position: 'relative',
                         overflow: 'hidden',
                         '&::before': {
@@ -1024,7 +1126,7 @@ function Dashboard() {
                           right: 0,
                           width: '100px',
                           height: '100px',
-                          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)',
+                          background: 'radial-gradient(circle, rgba(255, 153, 200, 0.15) 0%, transparent 70%)',
                           borderRadius: '50%',
                           transform: 'translate(30px, -30px)',
                         },
@@ -1036,11 +1138,11 @@ function Dashboard() {
                             display: 'inline-flex',
                             p: 1.2,
                             borderRadius: 2,
-                            bgcolor: 'rgba(37, 99, 235, 0.1)',
+                            bgcolor: 'rgba(255, 153, 200, 0.15)',
                             mb: 1.5,
                           }}
                         >
-                          <BusinessCenterIcon sx={{ fontSize: 28, color: '#2563eb' }} />
+                          <BusinessCenterIcon sx={{ fontSize: 28, color: '#ec407a' }} />
                         </Box>
                         <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {resumes.length}
@@ -1061,8 +1163,8 @@ function Dashboard() {
                   >
                     <Card
                       sx={{
-                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.02) 100%)',
-                        border: '1px solid rgba(124, 58, 237, 0.1)',
+                        background: 'linear-gradient(135deg, rgba(228, 193, 249, 0.08) 0%, rgba(252, 246, 189, 0.05) 100%)',
+                        border: '2px solid rgba(228, 193, 249, 0.2)',
                         position: 'relative',
                         overflow: 'hidden',
                         '&::before': {
@@ -1072,7 +1174,7 @@ function Dashboard() {
                           right: 0,
                           width: '100px',
                           height: '100px',
-                          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%)',
+                          background: 'radial-gradient(circle, rgba(228, 193, 249, 0.15) 0%, transparent 70%)',
                           borderRadius: '50%',
                           transform: 'translate(30px, -30px)',
                         },
@@ -1084,11 +1186,11 @@ function Dashboard() {
                             display: 'inline-flex',
                             p: 1.2,
                             borderRadius: 2,
-                            bgcolor: 'rgba(124, 58, 237, 0.1)',
+                            bgcolor: 'rgba(228, 193, 249, 0.15)',
                             mb: 1.5,
                           }}
                         >
-                          <AssessmentIcon sx={{ fontSize: 28, color: '#7c3aed' }} />
+                          <AssessmentIcon sx={{ fontSize: 28, color: '#9c27b0' }} />
                         </Box>
                         <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {roleStats.length}
@@ -1110,11 +1212,11 @@ function Dashboard() {
                     <Card
                       sx={{
                         background: isConnected 
-                          ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%)'
-                          : 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%)',
+                          ? 'linear-gradient(135deg, rgba(208, 244, 222, 0.08) 0%, rgba(169, 222, 249, 0.05) 100%)'
+                          : 'linear-gradient(135deg, rgba(255, 153, 200, 0.08) 0%, rgba(252, 246, 189, 0.05) 100%)',
                         border: isConnected 
-                          ? '1px solid rgba(16, 185, 129, 0.1)'
-                          : '1px solid rgba(239, 68, 68, 0.1)',
+                          ? '2px solid rgba(208, 244, 222, 0.2)'
+                          : '2px solid rgba(255, 153, 200, 0.2)',
                         position: 'relative',
                         overflow: 'hidden',
                         '&::before': {
@@ -1125,8 +1227,8 @@ function Dashboard() {
                           width: '100px',
                           height: '100px',
                           background: isConnected
-                            ? 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)'
-                            : 'radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%)',
+                            ? 'radial-gradient(circle, rgba(208, 244, 222, 0.15) 0%, transparent 70%)'
+                            : 'radial-gradient(circle, rgba(255, 153, 200, 0.15) 0%, transparent 70%)',
                           borderRadius: '50%',
                           transform: 'translate(30px, -30px)',
                         },
@@ -1139,15 +1241,15 @@ function Dashboard() {
                             p: 1.2,
                             borderRadius: 2,
                             bgcolor: isConnected 
-                              ? 'rgba(16, 185, 129, 0.1)'
-                              : 'rgba(239, 68, 68, 0.1)',
+                              ? 'rgba(208, 244, 222, 0.15)'
+                              : 'rgba(255, 153, 200, 0.15)',
                             mb: 1.5,
                           }}
                         >
                           {isConnected ? (
-                            <CheckCircleIcon sx={{ fontSize: 28, color: '#10b981' }} />
+                            <CheckCircleIcon sx={{ fontSize: 28, color: '#26a69a' }} />
                           ) : (
-                            <ErrorIcon sx={{ fontSize: 28, color: '#ef4444' }} />
+                            <ErrorIcon sx={{ fontSize: 28, color: '#ef5350' }} />
                           )}
                         </Box>
                         <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -1166,8 +1268,8 @@ function Dashboard() {
                   >
                     <Card
                       sx={{
-                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%)',
-                        border: '1px solid rgba(245, 158, 11, 0.1)',
+                        background: 'linear-gradient(135deg, rgba(252, 246, 189, 0.08) 0%, rgba(255, 153, 200, 0.05) 100%)',
+                        border: '2px solid rgba(252, 246, 189, 0.2)',
                         position: 'relative',
                         overflow: 'hidden',
                         '&::before': {
@@ -1177,7 +1279,7 @@ function Dashboard() {
                           right: 0,
                           width: '100px',
                           height: '100px',
-                          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%)',
+                          background: 'radial-gradient(circle, rgba(252, 246, 189, 0.15) 0%, transparent 70%)',
                           borderRadius: '50%',
                           transform: 'translate(30px, -30px)',
                         },
@@ -1189,11 +1291,11 @@ function Dashboard() {
                             display: 'inline-flex',
                             p: 1.2,
                             borderRadius: 2,
-                            bgcolor: 'rgba(245, 158, 11, 0.1)',
+                            bgcolor: 'rgba(252, 246, 189, 0.15)',
                             mb: 1.5,
                           }}
                         >
-                          <TrendingUpIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
+                          <TrendingUpIcon sx={{ fontSize: 28, color: '#ffa726' }} />
                         </Box>
                         <Typography variant="h3" sx={{ color: 'text.primary', fontWeight: 800, mb: 0.5, fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } }}>
                           {roleStats[0]?.value || 0}
@@ -1640,10 +1742,16 @@ function Dashboard() {
               }
             }}
           >
-            <DialogTitle sx={{ pb: 2 }}>
+            <DialogTitle sx={{ 
+              pb: 2,
+              background: 'linear-gradient(135deg, #ff99c8 0%, #e4c1f9 50%, #a9def9 100%)',
+              color: 'white',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+            }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <NotificationsActiveIcon sx={{ color: '#f59e0b' }} />
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                <NotificationsActiveIcon sx={{ color: '#fff', fontSize: 32 }} />
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white' }}>
                   Today's Birthdays ({birthdayNotifications.length})
                 </Typography>
               </Box>
@@ -1657,47 +1765,93 @@ function Dashboard() {
                   </Typography>
                 </Box>
               ) : (
-                <List sx={{ py: 0 }}>
+                <List sx={{ py: 0, bgcolor: (theme) => theme.palette.mode === 'light' ? '#fafafa' : '#0f172a' }}>
                   {birthdayNotifications.map((person, index) => (
                     <ListItem 
                       key={index} 
                       sx={{ 
-                        py: 2, 
+                        py: 2.5,
+                        px: 2,
                         borderBottom: index < birthdayNotifications.length - 1 ? '1px solid' : 'none', 
-                        borderColor: 'divider',
+                        borderColor: (theme) => theme.palette.mode === 'light' ? '#e2e8f0' : '#1e293b',
+                        borderRadius: 2,
+                        mb: 1,
+                        mx: 1,
+                        background: `linear-gradient(135deg, rgba(255, 153, 200, 0.15) 0%, rgba(252, 246, 189, 0.1) 50%, rgba(208, 244, 222, 0.1) 100%)`,
+                        border: '2px solid',
+                        borderColor: '#ff99c8',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          bgcolor: (theme) => theme.palette.mode === 'light' ? '#f8fafc' : 'rgba(255,255,255,0.04)',
+                          background: `linear-gradient(135deg, rgba(255, 153, 200, 0.25) 0%, rgba(252, 246, 189, 0.2) 50%, rgba(208, 244, 222, 0.2) 100%)`,
+                          transform: 'translateY(-3px)',
+                          boxShadow: '0 12px 24px rgba(255, 153, 200, 0.3), 0 0 20px rgba(228, 193, 249, 0.2)',
+                          borderColor: '#e4c1f9',
                         }
                       }}
                     >
                       <ListItemText
                         primary={
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                            {person.name}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box
+                              sx={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #ff99c8 0%, #e4c1f9 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(255, 153, 200, 0.4), 0 0 8px rgba(228, 193, 249, 0.3)',
+                              }}
+                            >
+                              🎂
+                            </Box>
+                            <Typography variant="h6" sx={{ 
+                              fontWeight: 700, 
+                              color: '#ff99c8',
+                              fontSize: '1.125rem',
+                              textShadow: '0 2px 4px rgba(255, 153, 200, 0.2)',
+                            }}>
+                              {person.name}
+                            </Typography>
+                          </Box>
                         }
                         secondary={
-                          <>
-                            <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-                              {person.phone}
+                          <Box sx={{ mt: 1.5, ml: 6.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                              <Typography component="span" variant="body2" sx={{ 
+                                color: (theme) => theme.palette.mode === 'light' ? '#475569' : '#94a3b8',
+                                fontWeight: 500,
+                              }}>
+                                📱 {person.phone}
+                              </Typography>
+                            </Box>
+                            <Typography component="span" variant="body2" sx={{ 
+                              color: (theme) => theme.palette.mode === 'light' ? '#64748b' : '#cbd5e1',
+                              fontWeight: 500,
+                            }}>
+                              🎉 Birthday: {person.dob}
                             </Typography>
-                            <br />
-                            <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-                              {person.dob}
-                            </Typography>
-                          </>
+                          </Box>
                         }
                       />
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1.5 }}>
                         <Button
                           variant="contained"
-                          size="small"
+                          size="medium"
                           onClick={() => openWhatsApp(person.phone, person.name)}
                           sx={{
-                            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-                            color: 'white',
+                            background: 'linear-gradient(135deg, #d0f4de 0%, #a9def9 100%)',
+                            color: '#1e40af',
+                            fontWeight: 700,
+                            px: 2.5,
+                            py: 1,
+                            borderRadius: 2,
+                            boxShadow: '0 4px 12px rgba(169, 222, 249, 0.4)',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #128C7E 0%, #075E54 100%)',
+                              background: 'linear-gradient(135deg, #a9def9 0%, #e4c1f9 100%)',
+                              boxShadow: '0 6px 16px rgba(228, 193, 249, 0.5)',
+                              transform: 'translateY(-2px)',
                             },
                           }}
                         >
@@ -1709,8 +1863,33 @@ function Dashboard() {
                 </List>
               )}
             </DialogContent>
-            <DialogActions sx={{ p: 3 }}>
-              <Button onClick={() => setShowNotifications(false)}>Close</Button>
+            <DialogActions sx={{ 
+              p: 3,
+              background: 'linear-gradient(135deg, rgba(252, 246, 189, 0.3) 0%, rgba(208, 244, 222, 0.3) 100%)',
+              borderTop: '2px solid',
+              borderColor: '#fcf6bd',
+              borderBottomLeftRadius: 16,
+              borderBottomRightRadius: 16,
+            }}>
+              <Button 
+                onClick={() => setShowNotifications(false)}
+                sx={{
+                  fontWeight: 700,
+                  px: 3,
+                  py: 1.2,
+                  borderRadius: 2,
+                  color: '#1e40af',
+                  background: 'linear-gradient(135deg, #a9def9 0%, #e4c1f9 100%)',
+                  boxShadow: '0 4px 8px rgba(169, 222, 249, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #e4c1f9 0%, #ff99c8 100%)',
+                    boxShadow: '0 6px 12px rgba(255, 153, 200, 0.4)',
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
+                Close
+              </Button>
             </DialogActions>
           </Dialog>
 
@@ -1803,11 +1982,11 @@ function Dashboard() {
                       : '0 4px 20px rgba(0, 0, 0, 0.3)',
                   }}
                 >
-                    <Grid container spacing={2} alignItems="flex-end">
-                      <Grid item xs={12} sm={6} md={5}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={6} md={3}>
                         <TextField
                           fullWidth
-                          placeholder="Search resumes (name, skills, keywords)..."
+                          placeholder="Search by name or contact number..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           variant="outlined"
@@ -1837,7 +2016,7 @@ function Dashboard() {
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={6} md={4}>
+                      <Grid item xs={12} sm={6} md={3}>
                         <TextField
                           fullWidth
                           select
@@ -1882,6 +2061,42 @@ function Dashboard() {
                           })}
                         </TextField>
                       </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <TextField
+                          fullWidth
+                          label="Filter by Date"
+                          type="date"
+                          value={selectedDate ? new Date(selectedDate).toISOString().split('T')[0] : ''}
+                          onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
+                          variant="outlined"
+                          InputLabelProps={{
+                            shrink: true,
+                          }}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <CalendarIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                              </InputAdornment>
+                            ),
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              bgcolor: 'background.default',
+                              '&:hover': {
+                                bgcolor: (theme) => theme.palette.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
+                              },
+                              '&.Mui-focused': {
+                                bgcolor: 'background.paper',
+                              },
+                            },
+                            '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                              cursor: 'pointer',
+                              filter: (theme) => theme.palette.mode === 'dark' ? 'invert(1)' : 'none',
+                            },
+                          }}
+                        />
+                      </Grid>
                       <Grid item xs={12} sm={12} md={3}>
                         <Button
                           fullWidth
@@ -1891,18 +2106,24 @@ function Dashboard() {
                           disabled={filteredResumes.length === 0}
                           sx={{
                             py: 1.5,
-                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, #ff99c8 0%, #e4c1f9 50%, #a9def9 100%)',
+                            boxShadow: '0 6px 16px rgba(255, 153, 200, 0.4), 0 0 12px rgba(228, 193, 249, 0.3)',
+                            fontWeight: 700,
                             fontSize: '0.9375rem',
+                            color: '#1e3a5f',
+                            borderRadius: 2,
+                            border: '2px solid rgba(255, 255, 255, 0.5)',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.4)',
-                              transform: 'translateY(-2px)',
+                              background: 'linear-gradient(135deg, #e4c1f9 0%, #a9def9 50%, #ff99c8 100%)',
+                              boxShadow: '0 10px 24px rgba(255, 153, 200, 0.5), 0 0 16px rgba(169, 222, 249, 0.4)',
+                              transform: 'translateY(-3px)',
+                              color: '#0f2744',
                             },
                             '&:disabled': {
                               background: '#cbd5e1',
                               color: '#94a3b8',
+                              boxShadow: 'none',
                             },
                           }}
                         >
@@ -1976,61 +2197,141 @@ function Dashboard() {
                     </Grid>
                   ) : (
                     <>
-                    {paginatedResumes.map((resume, index) => (
-                    <Grid item xs={12} sm={6} md={6} lg={4} key={resume._id}>
-                      <motion.div
-                        variants={cardVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        whileHover={{ y: -4 }}
-                      >
-                        <Card
-                          sx={{
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                          }}
+                    {paginatedResumes.map((resume, index) => {
+                      const isBirthday = isTodayBirthday(resume.attachmentData?.dateOfBirth);
+                      
+                      // Debug logging
+                      if (resume.attachmentData?.dateOfBirth) {
+                        console.log(`Checking birthday for ${resume.attachmentData?.name}:`, {
+                          dateOfBirth: resume.attachmentData.dateOfBirth,
+                          isBirthday: isBirthday,
+                          today: new Date().toDateString()
+                        });
+                      }
+                      
+                      return (
+                      <Grid item xs={12} sm={6} md={6} lg={4} key={resume._id}>
+                        <motion.div
+                          variants={cardVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                          whileHover={{ y: -4 }}
                         >
+                          <Card
+                            sx={{
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              position: 'relative',
+                              overflow: 'visible',
+                              background: isBirthday 
+                                ? `linear-gradient(135deg, rgba(255, 153, 200, 0.15) 0%, rgba(252, 246, 189, 0.1) 50%, rgba(208, 244, 222, 0.1) 100%)`
+                                : (theme) => theme.palette.mode === 'light' 
+                                  ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%)'
+                                  : 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%)',
+                              border: isBirthday 
+                                ? '2px solid #ff99c8'
+                                : (theme) => theme.palette.mode === 'light' 
+                                  ? '1px solid rgba(226, 232, 240, 0.8)'
+                                  : '1px solid rgba(255, 255, 255, 0.05)',
+                              boxShadow: isBirthday 
+                                ? '0 8px 32px rgba(255, 153, 200, 0.4), 0 0 20px rgba(228, 193, 249, 0.2)'
+                                : undefined,
+                              animation: isBirthday ? 'birthdayGlow 2s ease-in-out infinite alternate' : undefined,
+                              '&::before': isBirthday ? {
+                                content: '""',
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                width: '100px',
+                                height: '100px',
+                                background: 'radial-gradient(circle, rgba(255, 153, 200, 0.3) 0%, transparent 70%)',
+                                borderRadius: '50%',
+                                transform: 'translate(30px, -30px)',
+                              } : {},
+                            }}
+                          >
+                            {isBirthday && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: -15,
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  display: 'flex',
+                                  gap: 1,
+                                  zIndex: 10,
+                                  animation: 'balloonFloat 3s ease-in-out infinite',
+                                }}
+                              >
+                                <CelebrationIcon sx={{ fontSize: 32, color: '#ec407a' }} />
+                                <CakeIcon sx={{ fontSize: 32, color: '#ffca28' }} />
+                                <CelebrationIcon sx={{ fontSize: 32, color: '#ab47bc' }} />
+                              </Box>
+                            )}
                           <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 2 }}>
                             {/* Header */}
                             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                 <Avatar
                                   sx={{
-                                    bgcolor: '#2563eb',
+                                    bgcolor: isBirthday ? '#ff99c8' : '#2563eb',
                                     width: 48,
                                     height: 48,
                                     fontSize: '1.25rem',
                                     fontWeight: 700,
+                                    boxShadow: isBirthday ? '0 4px 12px rgba(255, 153, 200, 0.4)' : undefined,
                                   }}
                                 >
                                   {(resume.attachmentData?.name || 'U')[0].toUpperCase()}
                                 </Avatar>
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                                  <Typography
-                                    variant="h6"
-                                    sx={{
-                                      fontWeight: 700,
-                                      color: 'text.primary',
-                                      mb: 0.5,
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      fontSize: '1rem',
-                                    }}
-                                  >
-                                    {resume.attachmentData?.name || 'Unknown Candidate'}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                                    <Typography
+                                      variant="h6"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: isBirthday ? '#ff99c8' : 'text.primary',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        fontSize: '1rem',
+                                        textShadow: isBirthday ? '0 2px 4px rgba(255, 153, 200, 0.2)' : undefined,
+                                      }}
+                                    >
+                                      {resume.attachmentData?.name || 'Unknown Candidate'}
+                                    </Typography>
+                                    {isBirthday && (
+                                      <Chip
+                                        label="🎉 Happy Birthday!"
+                                        size="small"
+                                        sx={{
+                                          background: 'linear-gradient(135deg, #ff99c8 0%, #e4c1f9 100%)',
+                                          color: 'white',
+                                          fontWeight: 700,
+                                          fontSize: '0.7rem',
+                                          animation: 'confettiPop 0.5s ease-out',
+                                          boxShadow: '0 4px 12px rgba(255, 153, 200, 0.4)',
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
                                   {resume.attachmentData?.role && (
                                     <Chip
                                       label={resume.attachmentData.role}
                                       size="small"
                                       sx={{
-                                        bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(37, 99, 235, 0.08)' : 'rgba(59, 130, 246, 0.15)',
-                                        color: (theme) => theme.palette.mode === 'light' ? '#2563eb' : '#60a5fa',
-                                        border: '1px solid rgba(37, 99, 235, 0.2)',
+                                        bgcolor: isBirthday
+                                          ? `linear-gradient(135deg, rgba(208, 244, 222, 0.6) 0%, rgba(169, 222, 249, 0.4) 100%)`
+                                          : (theme) => theme.palette.mode === 'light' ? 'rgba(37, 99, 235, 0.08)' : 'rgba(59, 130, 246, 0.15)',
+                                        color: isBirthday
+                                          ? '#1e40af'
+                                          : (theme) => theme.palette.mode === 'light' ? '#2563eb' : '#60a5fa',
+                                        border: isBirthday
+                                          ? '1px solid rgba(208, 244, 222, 0.3)'
+                                          : '1px solid rgba(37, 99, 235, 0.2)',
                                         fontWeight: 600,
                                         fontSize: '0.7rem',
                                       }}
@@ -2086,6 +2387,24 @@ function Dashboard() {
                                   <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.contactNumber}
                                   </Typography>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      const phoneNumber = resume.attachmentData.contactNumber.replace(/[^0-9]/g, '');
+                                      const candidateName = resume.attachmentData?.name || 'Candidate';
+                                      const message = encodeURIComponent(`Hello ${candidateName}, I hope this message finds you well. I am reaching out regarding your resume.`);
+                                      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+                                      window.open(whatsappUrl, '_blank');
+                                    }}
+                                    sx={{
+                                      color: '#25D366',
+                                      '&:hover': {
+                                        bgcolor: 'rgba(37, 211, 102, 0.1)',
+                                      },
+                                    }}
+                                  >
+                                    <PiWhatsappLogoDuotone style={{ fontSize: '18px' }} />
+                                  </IconButton>
                                 </Box>
                               )}
                               {resume.attachmentData?.dateOfBirth && (
@@ -2244,7 +2563,8 @@ function Dashboard() {
                         </Card>
                       </motion.div>
                     </Grid>
-                    ))}
+                      );
+                    })}
                     {/* Pagination Controls */}
                     {filteredResumes.length > itemsPerPage && (
                       <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
