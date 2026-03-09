@@ -221,7 +221,7 @@ function UploadPage() {
                     {/* File Upload Area */}
                     <Paper
                       sx={{
-                        p: 4,
+                        p: { xs: 2, sm: 3, md: 4 },
                         textAlign: 'center',
                         border: '2px dashed',
                         borderColor: 'divider',

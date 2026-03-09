@@ -339,7 +339,7 @@ function LoginPage() {
                       }}
                     />
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexDirection: { xs: 'column', sm: 'row' }, gap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}>
                       <FormControlLabel
                         control={
                           <Checkbox
@@ -415,9 +415,11 @@ function LoginPage() {
                       <Box
                         sx={{
                           display: 'inline-flex',
+                          flexWrap: 'wrap',
+                          justifyContent: 'center',
                           alignItems: 'center',
                           gap: 1,
-                          px: 2,
+                          px: { xs: 1.5, sm: 2 },
                           py: 1,
                           bgcolor: (theme) => theme.palette.mode === 'light' ? '#f1f5f9' : 'rgba(255,255,255,0.05)',
                           borderRadius: 2,

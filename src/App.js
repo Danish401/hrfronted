@@ -44,7 +44,8 @@ import {
   useTheme,
   Pagination,
   Stack,
-  MenuItem
+  MenuItem,
+  useMediaQuery
 } from '@mui/material';
 import { CalendarToday as CalendarIcon } from '@mui/icons-material';
 import {
@@ -124,6 +125,7 @@ const cardVariants = {
 
 function Dashboard() {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
@@ -957,7 +959,7 @@ function Dashboard() {
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
                   <ThemeToggleButton />
-                  <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1, opacity: 0.5 }} />
+                  <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1, opacity: 0.5, display: { xs: 'none', sm: 'flex' } }} />
                   {/* Birthday Notifications Icon */}
                   <Box sx={{ position: 'relative' }}>
                     <IconButton
@@ -1031,6 +1033,7 @@ function Dashboard() {
                   </Box>
                   <Button
                     variant="outlined"
+                    size={isMobile ? 'small' : 'medium'}
                     startIcon={<ShareIcon />}
                     onClick={() => {
                       const uploadLink = `${window.location.origin}/upload`;
@@ -1054,10 +1057,11 @@ function Dashboard() {
                       },
                     }}
                   >
-                    Share Link
+                    {isMobile ? 'Share' : 'Share Link'}
                   </Button>
                   <Button
                     variant="outlined"
+                    size={isMobile ? 'small' : 'medium'}
                     startIcon={<EmailIcon />}
                     onClick={handleOutlookAuth}
                     sx={{
@@ -1073,10 +1077,11 @@ function Dashboard() {
                       },
                     }}
                   >
-                    Connect Outlook
+                    {isMobile ? 'Outlook' : 'Connect Outlook'}
                   </Button>
                   <Button
                     variant="outlined"
+                    size={isMobile ? 'small' : 'medium'}
                     startIcon={<LogoutIcon />}
                     onClick={handleLogout}
                     sx={{
@@ -1315,13 +1320,18 @@ function Dashboard() {
             open={!!notification}
             autoHideDuration={5000}
             onClose={handleCloseNotification}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: 'top', horizontal: isMobile ? 'center' : 'right' }}
+            sx={{
+              width: { xs: 'calc(100% - 32px)', sm: 'auto' },
+              left: { xs: 16, sm: 'auto' },
+              right: { xs: 16, sm: 24 },
+            }}
           >
             <Alert
               onClose={handleCloseNotification}
               severity={notification?.type || 'info'}
               variant="filled"
-              sx={{ width: '100%' }}
+              sx={{ width: { xs: '100%', sm: '100%' } }}
               action={
                 notification?.action ? (
                   <Button 
@@ -2374,15 +2384,15 @@ function Dashboard() {
                             {/* Resume Data */}
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                               {resume.attachmentData?.email && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <EmailIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                                  <EmailIcon sx={{ fontSize: 16, color: 'primary.main', flexShrink: 0 }} />
+                                  <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {resume.attachmentData.email}
                                   </Typography>
                                 </Box>
                               )}
                               {resume.attachmentData?.contactNumber && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                                   <PhoneIcon sx={{ fontSize: 16, color: 'secondary.main' }} />
                                   <Typography variant="body2" sx={{ color: 'text.secondary', flex: 1, fontSize: '0.8rem' }}>
                                     {resume.attachmentData.contactNumber}
